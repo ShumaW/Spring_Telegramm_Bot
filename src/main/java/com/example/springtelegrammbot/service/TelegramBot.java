@@ -1,11 +1,14 @@
 package com.example.springtelegrammbot.service;
 
 import com.example.springtelegrammbot.config.BotConfig;
+import com.example.springtelegrammbot.model.Ads;
 import com.example.springtelegrammbot.model.User;
+import com.example.springtelegrammbot.repository.AdsRepository;
 import com.example.springtelegrammbot.repository.UserRepository;
 import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -34,6 +37,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AdsRepository adsRepository;
 
     static final String HELP_TEXT = "This bot is created to demonstrate Spring capabilities.\n\n" +
             "You can execute commands from the main menu on the left or by typing a command:\n\n" +
@@ -221,5 +227,16 @@ public class TelegramBot extends TelegramLongPollingBot {
         message.setChatId(String.valueOf(chatId));
         message.setText(textToSend);
         executeMessage(message);
+    }
+
+    @Scheduled(cron = "${cron.scheduler}")
+    private void sendAds(){
+        List<Ads> adsList = adsRepository.findAll();
+        List<User> userList = userRepository.findAll();
+        for (Ads ads: adsList){
+            for (User user : userList) {
+                prepareAndSendMessage(user.getChatId(), ads.getAd());
+            }
+        }
     }
 }
