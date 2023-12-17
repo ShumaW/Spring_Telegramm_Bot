@@ -74,6 +74,14 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             long chatId = update.getMessage().getChatId();
 
+            if (messageText.contains("/send") && config.getOwnerId() == chatId) {
+                String textToSend = EmojiParser.parseToUnicode(messageText.substring(messageText.indexOf(" ")));
+                Iterable<User> users = userRepository.findAll();
+                for (User user : users) {
+                    sendMessage(user.getChatId(), textToSend);
+                }
+            }
+
             switch (messageText) {
                 case "/start":
                     registerUser(update.getMessage());
@@ -93,7 +101,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             long messageId = update.getCallbackQuery().getMessage().getMessageId();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
 
-            if (callbackData.equals("YES_BUTTON")){
+            if (callbackData.equals("YES_BUTTON")) {
                 String text = "You pressed YES button";
 
                 EditMessageText message = new EditMessageText();
@@ -107,7 +115,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     log.error("Error occurred " + e.getMessage());
                 }
 
-            } else if (callbackData.equals("NO_BUTTON")){
+            } else if (callbackData.equals("NO_BUTTON")) {
                 String text = "You pressed NO button";
 
                 EditMessageText message = new EditMessageText();
